@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
 public class Graph {
 	private HashMap<Machine, ArrayList<Machine>> machineMap;
@@ -11,10 +8,15 @@ public class Graph {
 	}
 
 	private void removeLink(Machine machine1, Machine machine2){
+		List<Machine> toRemove = new ArrayList<>();
+
 		if (machineMap.containsKey(machine1))
-			for (Machine machine : machineMap.get(machine1))
+			for(Machine machine : machineMap.get(machine1))
 				if (machine == machine2)
-					machineMap.get(machine1).remove(machine2);
+					toRemove.add(machine2);
+
+		for (Machine machine : toRemove)
+			machineMap.get(machine1).remove(machine);
 	}
 
 	@Override
@@ -43,6 +45,10 @@ public class Graph {
 		map.put(machine4, new ArrayList<>(Collections.singletonList(machine2)));
 
 		Graph graph = new Graph(map);
+		System.out.println(graph);
+
+		graph.removeLink(machine1, machine2);
+
 		System.out.println(graph);
 	}
 }
