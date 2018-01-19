@@ -3,8 +3,32 @@ import java.util.*;
 public class Graph {
 	private HashMap<Machine, ArrayList<Machine>> machineMap;
 
-	public Graph(HashMap<Machine, ArrayList<Machine>> machineMap) {
-		this.machineMap = machineMap;
+	public Graph() {
+		machineMap = new HashMap<>();
+	}
+
+	private void generateMachineMap(int nbMachines){
+		ArrayList<Machine> machines = new ArrayList<>();
+
+		for( int i = 0; i < nbMachines; i++)
+			machines.add(new Machine());
+
+		for (Machine machine : machines){
+			int nbLinkedMachines = (int) (Math.random()*nbMachines) + 1;
+
+			while (nbLinkedMachines != 0){
+				Machine selectedMachine = machines.get((int) (Math.random()*nbMachines));
+
+				if (machine != selectedMachine && !machine.getLinkedMachines().contains(selectedMachine)){
+					machine.addLinkedMachine(selectedMachine);
+					selectedMachine.addLinkedMachine(machine);
+				}
+
+				nbLinkedMachines--;
+			}
+
+			machineMap.put(machine, machine.getLinkedMachines());
+		}
 	}
 
 	private void removeLink(Machine machine1, Machine machine2){
@@ -33,21 +57,8 @@ public class Graph {
 	}
 
 	public static void main(String[] args){
-		Machine machine1 = new Machine();
-		Machine machine2 = new Machine();
-		Machine machine3 = new Machine();
-		Machine machine4 = new Machine();
-
-		HashMap<Machine, ArrayList<Machine>> map = new HashMap<>();
-		map.put(machine1, new ArrayList<>(Collections.singletonList(machine2)));
-		map.put(machine2, new ArrayList<>(Arrays.asList(machine1, machine3, machine4)));
-		map.put(machine3, new ArrayList<>(Collections.singletonList(machine2)));
-		map.put(machine4, new ArrayList<>(Collections.singletonList(machine2)));
-
-		Graph graph = new Graph(map);
-		System.out.println(graph);
-
-		graph.removeLink(machine1, machine2);
+		Graph graph = new Graph();
+		graph.generateMachineMap(5);
 
 		System.out.println(graph);
 	}
