@@ -8,6 +8,4 @@ public class State {
 		this.graph = graph;
 		this.actualPlayer = actualPlayer;
 	}
-
-
 }
