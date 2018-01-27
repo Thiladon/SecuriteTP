@@ -2,9 +2,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * Graph class representing a graph of Machine.
+ *
+ * @version 2018-01-27
+ * @see Machine
+ */
+
 public class Graph {
+	/**
+	 * Hashmap having machines on key and an ArrayList representing the linked machines on value.
+	 *
+	 * @see Machine
+	 */
 	private HashMap<Machine, ArrayList<Machine>> machineMap;
 
+	/**
+	 * Constructor of a Graph object that initialize it.
+	 */
 	public Graph() {
 		machineMap = new HashMap<>();
 	}
@@ -21,7 +36,7 @@ public class Graph {
 		System.out.println("Select machine to remove a linked machine from :");
 		int nbMachines = graph.getMachineList().size();
 		String entry = scanner.next();
-		while (!graph.isValidIntegerEntry(entry)) {
+		while (graph.isNotValidIntegerEntry(entry)) {
 			System.out.println("Enter the machine's number from 1 to " + nbMachines);
 			entry = scanner.next();
 		}
@@ -32,7 +47,7 @@ public class Graph {
 		System.out.println("Select which linked machine to remove :");
 		int nbLinkedMachines = graph.getMachineMap().get(selectedMachine).size();
 		entry = scanner.next();
-		while (!graph.isValidIntegerEntry(entry)) {
+		while (graph.isNotValidIntegerEntry(entry)) {
 			System.out.println("Enter the machine's number from 1 to " + nbLinkedMachines);
 			entry = scanner.next();
 		}
@@ -46,6 +61,35 @@ public class Graph {
 		System.out.println(graph);
 	}
 
+	/**
+	 * Method that returns a list of Machines that are in the graph.
+	 *
+	 * @return list of Machines in the graph
+	 * @see Machine
+	 */
+	public ArrayList<Machine> getMachineList() {
+		return new ArrayList<>(machineMap.keySet());
+	}
+
+	/**
+	 * Getter of "machineMap".
+	 *
+	 * @return machineMap
+	 */
+	public HashMap<Machine, ArrayList<Machine>> getMachineMap() {
+		return machineMap;
+	}
+
+	/**
+	 * Method that randomly generate a new graph.
+	 * <p>
+	 *     It first creates the desired number of machine (nbMachines) and then, for each one of them, links it randomly
+	 *     to other machines.
+	 * </p>
+	 * @see Machine
+	 *
+	 * @param nbMachines desired number of machine
+	 */
 	public void generateMachineMap(int nbMachines) {
 		ArrayList<Machine> machines = new ArrayList<>();
 
@@ -53,11 +97,14 @@ public class Graph {
 			machines.add(new Machine());
 
 		for (Machine machine : machines) {
-			int nbLinkedMachines = (int) (Math.random() * nbMachines) + 1;
+			int nbLinkedMachines = (int) (Math.random() * nbMachines) + 1; // Selects a random number of linked machine
 
 			while (nbLinkedMachines != 0) {
-				Machine selectedMachine = machines.get((int) (Math.random() * nbMachines));
+				Machine selectedMachine = machines.get((int) (Math.random() * nbMachines)); // Selects a random machine
 
+				/* Check if the machine selected isn't the one we are linking machines to and if it is not already
+				linked, then links both machines
+				 */
 				if (machine != selectedMachine && !machine.getLinkedMachines().contains(selectedMachine)) {
 					machine.addLinkedMachine(selectedMachine);
 					selectedMachine.addLinkedMachine(machine);
@@ -70,20 +117,18 @@ public class Graph {
 		}
 	}
 
+	/**
+	 * Method that removes a link between two machines.
+	 *
+	 * @param machine1 first machine
+	 * @param machine2 second machine
+	 */
 	public void removeLink(Machine machine1, Machine machine2) {
 		if (machineMap.keySet().contains(machine1) && machineMap.keySet().contains(machine2))
 			if (machine1.getLinkedMachines().contains(machine2)) {
 				machineMap.get(machine1).remove(machine2);
 				machineMap.get(machine2).remove(machine1);
 			}
-	}
-
-	public ArrayList<Machine> getMachineList() {
-		return new ArrayList<>(machineMap.keySet());
-	}
-
-	public HashMap<Machine, ArrayList<Machine>> getMachineMap() {
-		return machineMap;
 	}
 
 	@Override
@@ -99,7 +144,13 @@ public class Graph {
 		return String.valueOf(res);
 	}
 
-	public boolean isValidIntegerEntry(String s) {
-		return s.matches("\\d+") && Integer.parseInt(s) - 1 > 0 && Integer.parseInt(s) - 1 < getMachineList().size();
+	/**
+	 * Method that checks if the String object in parameter is a valid integer
+	 *
+	 * @param s a String object
+	 * @return True if the String object isn't a valid integer and False if it is
+	 */
+	public boolean isNotValidIntegerEntry(String s) {
+		return !s.matches("\\d+") || Integer.parseInt(s) - 1 <= 0 || Integer.parseInt(s) - 1 >= getMachineList().size();
 	}
 }
