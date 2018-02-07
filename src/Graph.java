@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -57,9 +58,19 @@ public class Graph {
 			}
 	}
 
+	/**
+	 * Method that checks if the String object in parameter is a valid integer
+	 *
+	 * @param s a String object
+	 * @return True if the String object isn't a valid integer and False if it is
+	 */
+	public boolean isNotValidIntegerEntry(String s) {
+		return !s.matches("\\d+") || Integer.parseInt(s) - 1 <= 0 && Integer.parseInt(s) - 1 >= getMachineList().size();
+	}
+
 	public static void main(String[] args) {
 		Graph graph = new Graph();
-		graph.generateMachineMap(5, 2);
+		graph.generateMachineMap(5, 2, 0.05f);
 
 		System.out.println(graph);
 
@@ -95,60 +106,55 @@ public class Graph {
 	}
 
 	/**
-	 * Method that checks if the String object in parameter is a valid integer
-	 *
-	 * @param s a String object
-	 * @return True if the String object isn't a valid integer and False if it is
-	 */
-	public boolean isNotValidIntegerEntry(String s) {
-		return !s.matches("\\d+") || Integer.parseInt(s) - 1 <= 0 && Integer.parseInt(s) - 1 >= getMachineList().size();
-	}
-
-	/**
 	 * Method that randomly generate a new graph.
 	 * <p>
-	 * It first creates the desired number of machine (nbMachines) and then, for each one of them, links it randomly
-	 * to other machines.
+	 * <p>
 	 * </p>
 	 *
 	 * @param nbMachines desired number of machine
 	 * @see Machine
 	 */
-	public void generateMachineMap(int nbMachines, int nbInfectedMachines) {
+	public void generateMachineMap(int nbMachines, int nbInfectedMachines, float linkProb) {
 		ArrayList<Machine> machines = new ArrayList<>();
+		Random random = new Random();
 
-		while (machines.size() < nbMachines)
+		while (machines.size() < nbMachines) // creates $nbMachines machines
 			machines.add(new Machine());
 
 		ArrayList<Integer> infect = new ArrayList<>();
-
 		while (nbInfectedMachines > 0) {
-			int random = (int) (Math.random() * nbMachines);
+			int rand = random.nextInt(nbMachines);
 
-			if (!infect.contains(random)) {
-				infect.add(random);
+			if (!infect.contains(rand)) {
+				infect.add(rand);
 				nbInfectedMachines--;
 			}
 		}
 
+		/*
+		For each machine :
+		- it put it into infected state if it index is into the infect list
+		- it links it with other machines following the probability
+		- it links it with a random machine if it didn't got any linked machine following the probability
+		 */
 		for (Machine machine : machines) {
-			int nbLinkedMachines = (int) (Math.random() * nbMachines) + 1; // Selects a random number of linked machine
-
-			while (nbLinkedMachines != 0) {
-				Machine selectedMachine = machines.get((int) (Math.random() * nbMachines)); // Selects a random machine
-
-				/* Check if the machine selected isn't the one we are linking machines to and if it is not already
-				linked, then links both machines*/
-				if (machine != selectedMachine && !machine.getLinkedMachines().contains(selectedMachine)) {
-					machine.addLinkedMachine(selectedMachine);
-					selectedMachine.addLinkedMachine(machine);
-				}
-
-				nbLinkedMachines--;
-			}
-
 			if (infect.contains(machines.indexOf(machine)))
 				machine.setInfectedState(true);
+
+			for (Machine machine1 : machines) {
+				int linkRate = random.nextInt(100) + 1;
+
+				if (linkRate < linkProb * 100) {
+					machine.addLinkedMachine(machine1);
+					machine1.addLinkedMachine(machine);
+				}
+			}
+
+			if (machine.getLinkedMachines().size() == 0) {
+				int randMachine = random.nextInt(nbMachines);
+				machine.addLinkedMachine(machines.get(randMachine));
+				machines.get(randMachine).addLinkedMachine(machine);
+			}
 
 			machineMap.put(machine, machine.getLinkedMachines());
 		}
@@ -157,6 +163,7 @@ public class Graph {
 	@Override
 	public String toString() {
 		StringBuilder res = new StringBuilder();
+
 		for (int i = 1; i <= machineMap.keySet().size(); i++) {
 			res.append(i).append(". Machine's ID = ").append(System.identityHashCode(getMachineList().get(i - 1))).append(" ").append(getMachineList().get(i - 1).isInfectedState()).append("\t Machine.s liée.s : ");
 			for (Machine machine1 : machineMap.get(getMachineList().get(i - 1)))
