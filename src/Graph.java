@@ -43,9 +43,23 @@ public class Graph {
 		return machineMap;
 	}
 
+	/**
+	 * Method that removes a link between two machines.
+	 *
+	 * @param machine1 first machine
+	 * @param machine2 second machine
+	 */
+	public void removeLink(Machine machine1, Machine machine2) {
+		if (machineMap.keySet().contains(machine1) && machineMap.keySet().contains(machine2))
+			if (machine1.getLinkedMachines().contains(machine2)) {
+				machineMap.get(machine1).remove(machine2);
+				machineMap.get(machine2).remove(machine1);
+			}
+	}
+
 	public static void main(String[] args) {
 		Graph graph = new Graph();
-		graph.generateMachineMap(5);
+		graph.generateMachineMap(5, 2);
 
 		System.out.println(graph);
 
@@ -81,30 +95,13 @@ public class Graph {
 	}
 
 	/**
-	 * Method that removes a link between two machines.
+	 * Method that checks if the String object in parameter is a valid integer
 	 *
-	 * @param machine1 first machine
-	 * @param machine2 second machine
+	 * @param s a String object
+	 * @return True if the String object isn't a valid integer and False if it is
 	 */
-	public void removeLink(Machine machine1, Machine machine2) {
-		if (machineMap.keySet().contains(machine1) && machineMap.keySet().contains(machine2))
-			if (machine1.getLinkedMachines().contains(machine2)) {
-				machineMap.get(machine1).remove(machine2);
-				machineMap.get(machine2).remove(machine1);
-			}
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder res = new StringBuilder();
-		for (int i = 1; i <= machineMap.keySet().size(); i++) {
-			res.append(i).append(". Machine's ID = ").append(System.identityHashCode(getMachineList().get(i - 1))).append("\t Machine.s liée.s : ");
-			for (Machine machine1 : machineMap.get(getMachineList().get(i - 1)))
-				res.append(System.identityHashCode(machine1)).append(" \t");
-			res.append("\n");
-		}
-
-		return String.valueOf(res);
+	public boolean isNotValidIntegerEntry(String s) {
+		return !s.matches("\\d+") || Integer.parseInt(s) - 1 <= 0 && Integer.parseInt(s) - 1 >= getMachineList().size();
 	}
 
 	/**
@@ -117,11 +114,22 @@ public class Graph {
 	 * @param nbMachines desired number of machine
 	 * @see Machine
 	 */
-	public void generateMachineMap(int nbMachines) {
+	public void generateMachineMap(int nbMachines, int nbInfectedMachines) {
 		ArrayList<Machine> machines = new ArrayList<>();
 
-		for (int i = 0; i < nbMachines; i++)
+		while (machines.size() < nbMachines)
 			machines.add(new Machine());
+
+		ArrayList<Integer> infect = new ArrayList<>();
+
+		while (nbInfectedMachines > 0) {
+			int random = (int) (Math.random() * nbMachines);
+
+			if (!infect.contains(random)) {
+				infect.add(random);
+				nbInfectedMachines--;
+			}
+		}
 
 		for (Machine machine : machines) {
 			int nbLinkedMachines = (int) (Math.random() * nbMachines) + 1; // Selects a random number of linked machine
@@ -130,8 +138,7 @@ public class Graph {
 				Machine selectedMachine = machines.get((int) (Math.random() * nbMachines)); // Selects a random machine
 
 				/* Check if the machine selected isn't the one we are linking machines to and if it is not already
-				linked, then links both machines
-				 */
+				linked, then links both machines*/
 				if (machine != selectedMachine && !machine.getLinkedMachines().contains(selectedMachine)) {
 					machine.addLinkedMachine(selectedMachine);
 					selectedMachine.addLinkedMachine(machine);
@@ -140,17 +147,23 @@ public class Graph {
 				nbLinkedMachines--;
 			}
 
+			if (infect.contains(machines.indexOf(machine)))
+				machine.setInfectedState(true);
+
 			machineMap.put(machine, machine.getLinkedMachines());
 		}
 	}
 
-	/**
-	 * Method that checks if the String object in parameter is a valid integer
-	 *
-	 * @param s a String object
-	 * @return True if the String object isn't a valid integer and False if it is
-	 */
-	public boolean isNotValidIntegerEntry(String s) {
-		return !s.matches("\\d+") || Integer.parseInt(s) - 1 <= 0 && Integer.parseInt(s) - 1 >= getMachineList().size();
+	@Override
+	public String toString() {
+		StringBuilder res = new StringBuilder();
+		for (int i = 1; i <= machineMap.keySet().size(); i++) {
+			res.append(i).append(". Machine's ID = ").append(System.identityHashCode(getMachineList().get(i - 1))).append(" ").append(getMachineList().get(i - 1).isInfectedState()).append("\t Machine.s liée.s : ");
+			for (Machine machine1 : machineMap.get(getMachineList().get(i - 1)))
+				res.append(System.identityHashCode(machine1)).append(" \t");
+			res.append("\n");
+		}
+
+		return String.valueOf(res);
 	}
 }
